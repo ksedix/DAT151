@@ -1,0 +1,137 @@
+-- Programming Language Technology (Chalmers DAT151 / GU DIT231)
+-- (C) 2022-23 Andreas Abel
+-- All rights reserved.
+
+-- Lab 1: Parser for a fragment of C++
+
+-- The start symbol should be named 'Program'.
+-- Needs to stay at the top of the file!
+
+-- TODO: Fill in 'Program' and all the other grammar rules and BNFC pragmas.
+
+Prg. Program ::=  [Def] ;
+terminator Def "" ;
+
+token Id (letter (letter | digit | '_')*) ;
+token QId (letter (letter | digit | '_')*) ;
+
+comment "//" ;
+comment "/*" "*/" ;
+comment "#" ;
+
+QConstSingle. QConst ::= Id ;
+QConstList. QConst ::= Id "::" QConst ;
+
+--top level definitions
+DTDef. Def ::= "typedef" Type Id ";";
+DQConst. Def ::= "using" QConst ";" ;
+DVDecl. Def ::=  Type [Id] ";" ;
+DVInit. Def ::=  Type [Var] ";" ;
+
+--empty function definition
+DFunEmpty. Def::= Type Id "(" [Arg] ")" ";" ;
+--function definition
+DFun. Def ::= Type Id "(" [Arg] ")" "{" [Stm] "}" ;
+
+separator Arg "," ;
+terminator Stm "";
+
+-- different types of argument declaration.
+ADecl. Arg ::= Type;
+ADecl2. Arg ::= Type Id;
+ADecl3. Arg ::= Type Id "=" Exp;
+
+VDecl. Var ::= [Id] ;
+VInit. Var::= [Id] "=" Exp ;
+
+SExp. Stm ::= Exp ";" ;
+SDecl. Stm ::= Type [Id] ";" ;
+SInit. Stm ::= Type [Var] ";" ;
+STDef. Stm ::= "typedef" Type Id ";";
+
+separator nonempty Id "," ;
+separator nonempty Var "," ;
+
+SReturn. Stm ::= "return" Exp ";" ;
+SWhile. Stm ::= "while" "(" Exp ")" Stm ;
+
+SFor. Stm ::= "for" "(" Type [Var] ";" Exp ";" Exp ")" Stm ;
+SDoWhile. Stm ::= "do" Stm "while" "(" Exp ")" ";" ;
+
+SBlock. Stm ::= "{" [Stm] "}" ;
+SIfElse. Stm ::= "if" "(" Exp ")" Stm "else" Stm ;
+SIf. Stm ::= "if" "(" Exp ")" Stm ;
+
+--expressions
+
+-- if it is left associative, then it means that the left subexpression should have the same precedence level as the expression.
+
+ELit. Exp15 ::= Literal;
+ETrue. Exp15 ::= "true" ;
+EFalse. Exp15 ::= "false" ;
+EQConst. Exp15 ::= QConst;
+
+EIndex. Exp14 ::= Exp14 "[" Exp "]" ;
+EFCall. Exp14 ::= Exp14 "(" [Exp] ")" ;
+
+ESProj1. Exp14 ::= Exp14 "." Exp15 ;
+ESProj2. Exp14 ::= Exp14 "->" Exp15 ;
+EPIncr. Exp14 ::= Exp14 "++" ;
+EPDecr. Exp14 ::= Exp14 "--" ;
+
+EIncr. Exp13 ::= "++" Exp13 ;
+EDecr. Exp13 ::= "--" Exp13 ;
+EDer. Exp13 ::= "*" Exp13 ;
+ENeg. Exp13 ::= "!" Exp13 ;
+
+EMul. Exp12 ::= Exp12 "*" Exp13 ;
+EDiv. Exp12 ::= Exp12 "/" Exp13 ;
+ERem. Exp12 ::= Exp12 "%" Exp13 ;
+EAdd. Exp11 ::= Exp11 "+" Exp12 ;
+ESub. Exp11 ::= Exp11 "-" Exp12 ;
+ERSh. Exp10 ::= Exp10 ">>" Exp11 ;
+ELSh. Exp10 ::= Exp10 "<<" Exp11 ;
+
+ELt. Exp9 ::= Exp9 "<" Exp10 ;
+EGt. Exp9 ::= Exp9 ">" Exp10 ;
+ELEq. Exp9 ::= Exp9 "<=" Exp10 ;
+EGEq. Exp9 ::= Exp9 ">=" Exp10 ;
+
+EEq. Exp8 ::= Exp8 "==" Exp9 ;
+ENEq. Exp8 ::= Exp8 "!=" Exp9 ;
+EAnd. Exp4 ::= Exp4 "&&" Exp5 ;
+EOr. Exp3 ::= Exp3 "||" Exp4 ;
+
+EAss. Exp2 ::= Exp3 "=" Exp2 ;
+EIncAss. Exp2 ::= Exp3 "+=" Exp2 ;
+EDecAss. Exp2 ::= Exp3 "-=" Exp2 ;
+
+ETern. Exp2 ::= Exp3 "?" Exp ":" Exp2 ;
+
+EThrow. Exp1 ::= "throw" Exp1;
+
+coercions Exp 15 ;
+separator Exp "," ;
+
+
+
+--Types
+TBool. Type ::= "bool" ;
+TDouble. Type ::= "double" ;
+TInt. Type ::= "int" ;
+TVoid. Type ::= "void" ;
+TChar. Type ::= "char" ;
+TConst. Type ::= "const" Type ;
+TQConst. Type ::= QConst ;
+TRef. Type ::= Type "&" ;
+TDoubleRef. Type ::= Type "& &" ;
+
+--Literals
+LInt. Literal ::= Integer ;
+LDouble. Literal ::= Double ;
+LString. Literal ::= String ;
+LChar. Literal ::= Char ;
+LMultiString. Literal ::= [String] ;
+separator nonempty String "";
+
+
